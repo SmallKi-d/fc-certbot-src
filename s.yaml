@@ -72,7 +72,7 @@ resources:
       diskSize: 10240
       internetAccess: true
       functionName: ${vars.fcDomainManagerFunctionName}
-      runtime: nodejs26
+      runtime: nodejs20
       environmentVariables:
         CUSTOM_DOMAIN_REGIONS: cn-beijing,cn-hangzhou,cn-shanghai,cn-qingdao,cn-zhangjiakou,cn-huhehaote,cn-shenzhen,cn-chengdu
         CERT_GENERATOR_FUNCTION_NAME: ${vars.certGeneratorFunctionName}
@@ -101,7 +101,7 @@ resources:
       diskSize: 10240
       internetAccess: true
       functionName: ${vars.fcDomainManagerFunctionName}
-      runtime: nodejs26
+      runtime: nodejs20
       environmentVariables:
         CUSTOM_DOMAIN_REGIONS: cn-hongkong,ap-southeast-1,ap-southeast-3,ap-southeast-5,ap-southeast-7,ap-northeast-1,ap-northeast-2,eu-central-1,eu-west-1,us-west-1,us-east-1
         CERT_GENERATOR_FUNCTION_NAME: ${vars.certGeneratorFunctionName}
