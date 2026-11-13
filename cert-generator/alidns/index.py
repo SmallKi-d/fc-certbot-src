@@ -8,19 +8,32 @@ from darabonba.runtime import RuntimeOptions
 from aliyun_config import get_config
 
 
-def get_domain_rr():
+def get_challenge_domain():
     domain = os.environ.get("CERTBOT_DOMAIN") or os.environ["DEVS_DOMAIN"]
-    tokens = domain.split(".")[:-2]
-    if tokens and tokens[0] == "*":
-        tokens.pop(0)
-    tokens.insert(0, "_acme-challenge")
-    return ".".join(tokens)
+    return domain.lower().rstrip(".").removeprefix("*.")
+
+
+def get_domain_rr(domain_name=None):
+    domain = get_challenge_domain()
+    zone = domain_name or get_domain_name()
+    if domain == zone:
+        return "_acme-challenge"
+    if not domain.endswith("." + zone):
+        raise ValueError("Challenge domain does not belong to the AliDNS zone")
+    return "_acme-challenge." + domain[:-(len(zone) + 1)]
 
 
 def get_domain_name():
-    domain = os.environ.get("CERTBOT_DOMAIN") or os.environ["DEVS_DOMAIN"]
-    tokens = domain.split(".")
-    return ".".join(tokens[-2:])
+    response = get_client().get_main_domain_name_with_options(
+        alidns_20150109_models.GetMainDomainNameRequest(
+            input_string=get_challenge_domain()
+        ),
+        runtime,
+    )
+    zone = response.body.domain_name
+    if not zone:
+        raise ValueError("AliDNS did not return a main domain name")
+    return zone.lower().rstrip(".")
 
 
 def check_if_valid_domain():

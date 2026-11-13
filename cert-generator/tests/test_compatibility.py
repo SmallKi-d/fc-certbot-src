@@ -142,19 +142,42 @@ class CryptoTests(SdkTestCase):
 
 class DnsTests(SdkTestCase):
     def test_root_subdomain_and_wildcard(self):
-        for domain, expected in {
-            "example.com": "_acme-challenge",
-            "*.example.com": "_acme-challenge",
-            "www.example.com": "_acme-challenge.www",
-            "*.sub.example.com": "_acme-challenge.sub",
-        }.items():
-            with self.subTest(domain=domain), mock.patch.dict(os.environ, {"DEVS_DOMAIN": domain}, clear=True):
-                self.assertEqual(dns.get_domain_name(), "example.com")
-                self.assertEqual(dns.get_domain_rr(), expected)
+        for zone in ("example.com", "ruituedu.com.cn", "example.co.uk"):
+            for prefix, expected in {
+                "": "_acme-challenge",
+                "*.": "_acme-challenge",
+                "www.": "_acme-challenge.www",
+                "*.sub.": "_acme-challenge.sub",
+            }.items():
+                domain = prefix + zone
+                with self.subTest(domain=domain), mock.patch.dict(os.environ, {"DEVS_DOMAIN": domain}, clear=True), mock.patch.object(
+                    self.dns_client, "call_api", return_value={"body": {"DomainName": zone}}
+                ) as api:
+                    self.assertEqual(dns.get_domain_name(), zone)
+                    self.assertEqual(dns.get_domain_rr(zone), expected)
+                    self.assertEqual(api.call_count, 1)
+                    self.assertEqual(api.call_args.args[0].action, "GetMainDomainName")
+                    self.assertEqual(api.call_args.args[1].query["InputString"], domain.removeprefix("*."))
 
     def test_certbot_domain_takes_precedence(self):
         with mock.patch.dict(os.environ, {"CERTBOT_DOMAIN": "sub.example.com"}, clear=True):
-            self.assertEqual(dns.get_domain_rr(), "_acme-challenge.sub")
+            self.assertEqual(dns.get_domain_rr("example.com"), "_acme-challenge.sub")
+
+    def test_domain_validation_uses_full_main_domain(self):
+        with mock.patch.dict(os.environ, {"DEVS_DOMAIN": "ruituedu.com.cn"}, clear=True), mock.patch.object(
+            self.dns_client, "call_api", side_effect=[
+                {"body": {"DomainName": "ruituedu.com.cn"}},
+                {"body": {"DomainName": "ruituedu.com.cn"}},
+            ]
+        ) as api:
+            dns.check_if_valid_domain()
+        self.assertEqual(api.call_args.args[0].action, "DescribeDomainInfo")
+        self.assertEqual(api.call_args.args[1].query["DomainName"], "ruituedu.com.cn")
+
+    def test_unrelated_zone_is_rejected(self):
+        with mock.patch.dict(os.environ, {"DEVS_DOMAIN": "ruituedu.com.cn"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "does not belong"):
+                dns.get_domain_rr("example.com")
 
     def test_txt_lookup_ignores_other_record_types(self):
         response = {

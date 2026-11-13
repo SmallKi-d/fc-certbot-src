@@ -59,7 +59,7 @@ PYTHONPATH=python python3.12 -c 'from certbot.main import main; main(["--version
 {"domainName": "example.com", "certName": "my-certificate"}
 ```
 
-`certName` 可省略；传入已有名称时，证书将在到期前七天内重新签发并替换。域名必须已由当前账号的阿里云 DNS 管理，支持根域名、子域名和单个通配符域名。当前域名拆分逻辑适用于 `example.com` 这样的两段主域名，`example.co.uk` 等多段后缀需要另外适配。
+`certName` 可省略；传入已有名称时，证书将在到期前七天内重新签发并替换。域名必须已由当前账号的阿里云 DNS 管理，支持根域名、子域名和单个通配符域名。通过 AliDNS `GetMainDomainName` 查询主域名，支持 `ruituedu.com.cn`、`example.co.uk` 等多段后缀；角色需要 `alidns:GetMainDomainName` 权限（`AliyunDNSFullAccess` 已包含）。例如 `ruituedu.com.cn` 的 TXT 主机记录为 `_acme-challenge`，`www.ruituedu.com.cn` 的记录为 `_acme-challenge.www`。
 
 Certbot hook 使用当前 Python 解释器及项目实际路径，不再要求代码固定在 `/code`。证书默认存放在函数计算可写的 `/tmp`；需要跨实例保留 ACME 账号及续期状态时，将上述目录配置到持久化存储。
 

@@ -3,7 +3,7 @@
 from alidns.index import get_domain_record_id, get_domain_rr, get_domain_name, delete_rr
 
 domainName = get_domain_name()
-rr = get_domain_rr()
+rr = get_domain_rr(domainName)
 
 record_id = get_domain_record_id(domainName, rr)
 
