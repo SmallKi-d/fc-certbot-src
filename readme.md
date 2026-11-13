@@ -61,7 +61,7 @@
 
 1. 在与 FC Python 3.12 运行时相同的 Linux 架构与兼容 glibc 环境准备 Python 3.12、pip、Node.js 26+、npm 和 Serverless Devs v3。
 2. 在应用中心的部署流水线/构建环境变量中配置 `FC_CERTBOT_ROLE_ARN`（完整 RAM 角色 ARN）和 `CERTBOT_EMAIL`（真实邮箱）。本地部署可复制 `.env.example` 为 `.env` 后填写，或使用 shell `export`。RAM 角色应具有 DNS、CAS、FC 权限。独立 Git 仓库部署不会执行模板初始化，因此使用 `${env(...)}` 读取部署环境，不能保留 `{{ ... }}` 占位符。
-3. 在仓库根目录执行 `s deploy -y`。四个函数分别配置了部署前构建：证书生成器使用 Python 3.12 安装依赖，域名管理器使用 `npm ci --omit=dev`。可以通过 `PYTHON_BIN` 指定 Python 3.12 解释器，不再依赖旧的解释器绝对路径。
+3. 在仓库根目录执行 `s deploy -y`。四个函数分别配置了部署前构建：证书生成器使用 Python 3.12 安装依赖，域名管理器使用 `npm ci --production --no-audit --no-fund`。可以通过 `PYTHON_BIN` 指定 Python 3.12 解释器，不再依赖旧的解释器绝对路径。
 
 ```bash
 export FC_CERTBOT_ROLE_ARN='acs:ram::你的账号ID:role/你的角色名'
@@ -70,6 +70,8 @@ PYTHON_BIN=python3.12 s deploy -y
 ```
 
 可选部署环境变量：`FC_CERTBOT_ACCESS`（默认 `default`）、`CERT_GENERATOR_FUNCTION_NAME`（默认 `cert-generator`）、`FC_DOMAIN_MANAGER_FUNCTION_NAME`（默认 `fc-domain-manager`）。应用中心的构建变量与函数运行时变量是两个层级；请在执行 `s deploy` 的环境中设置上述值。模板会自动将邮箱传入两个证书生成函数的运行时环境变量，角色则配置到四个函数的 `role` 属性。
+
+应用中心可能预装旧版 npm；`package-lock.json` 使用 v2 格式，同时包含旧 npm 所需的 `dependencies` 和新 npm 使用的 `packages`，避免 npm 6 读取 v3 锁文件时报 `Cannot read property ... of undefined`。更新依赖时请使用 `npm install --package-lock-only --lockfile-version=2` 保持格式。构建时使用的 Node.js 与函数运行时独立，两个域名管理函数的运行时仍为 Node.js 26。
 
 函数入口仍为 `index.handler`。Python 函数按每次调用的 `context.credentials` 使用 RAM 角色临时密钥，不需要在模板内填写 AccessKey。Certbot 账号、证书、工作文件与日志默认写入 `/tmp/letsencrypt/`。
 

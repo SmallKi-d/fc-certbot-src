@@ -60,7 +60,7 @@ resources:
     component: fc3
     actions:
       pre-deploy:
-        - run: npm ci --omit=dev
+        - run: npm ci --production --no-audit --no-fund
           path: ./fc-domain-manager
     props:
       region: cn-hangzhou
@@ -89,7 +89,7 @@ resources:
     component: fc3
     actions:
       pre-deploy:
-        - run: npm ci --omit=dev
+        - run: npm ci --production --no-audit --no-fund
           path: ./fc-domain-manager
     props:
       region: ap-southeast-1
