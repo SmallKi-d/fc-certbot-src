@@ -1,0 +1,6 @@
+certbot==5.10.0
+acme==5.10.0
+alibabacloud_cas20200407==3.9.5
+alibabacloud_alidns20150109==4.6.1
+cryptography==50.0.2
+pyOpenSSL==26.4.0

@@ -1,0 +1,11 @@
+**/python/
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+**/.python-build.*/
+.s/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
