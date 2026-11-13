@@ -1,10 +1,10 @@
 edition: 3.0.0
-access: "{{ access }}"
+access: '${env("FC_CERTBOT_ACCESS", "default")}'
 vars:
-  fcDomainManagerFunctionName: "{{ fcDomainManagerFunctionName }}"
-  certGeneratorFunctionName: "{{ certGeneratorFunctionName }}"
-  role: "{{ role }}"
-  certbotEmail: "{{ certbotEmail }}"
+  fcDomainManagerFunctionName: '${env("FC_DOMAIN_MANAGER_FUNCTION_NAME", "fc-domain-manager")}'
+  certGeneratorFunctionName: '${env("CERT_GENERATOR_FUNCTION_NAME", "cert-generator")}'
+  role: ${env("FC_CERTBOT_ROLE_ARN")}
+  certbotEmail: ${env("CERTBOT_EMAIL")}
 resources:
   cert-generator-hz:
     component: fc3
